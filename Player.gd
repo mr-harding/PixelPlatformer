@@ -1,24 +1,34 @@
 extends KinematicBody2D
 class_name Player
 
+#STATE MACHINE. in sequence so MOVE is 0, then climb 1 and so on
+enum { MOVE, CLIMB }
 
 var velocity = Vector2.ZERO
-export(int) var JUMP_FORCE = -130
-export(int) var RELEASE_FORCE = -70
-export(int) var MAX_SPEED = 50
-export(int) var ACCELERATION = 10
-export(int) var FRICTION = 10
-export(int) var GRAVITY = 4
+var state = MOVE
 
-func _ready():
-	pass
+export(Resource) var moveData
+
+onready var animatedSprite = $AnimatedSprite
+onready var ladderCheck = $LadderCheck
 	
 func _physics_process(delta):
-	apply_gravity()
+	if is_on_ladder():
+		print("is on ladder")
+	
 	var input = Vector2.ZERO
-	input.x = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
-	
-	
+	input.x = Input.get_axis("ui_left", "ui_right")
+	input.y = Input.get_axis("ui_up", "ui_down")
+	match state:
+		MOVE: move_state(input)
+		CLIMB: climb_state(input)
+
+		
+func move_state(input):
+	if is_on_ladder() and Input.is_action_pressed("ui_up"):
+		state = CLIMB
+
+	apply_gravity()
 	if input.x == 0:
 		apply_friction()
 		$AnimatedSprite.animation = "idle"
@@ -33,24 +43,42 @@ func _physics_process(delta):
 	
 	if is_on_floor():
 		if Input.is_action_pressed("ui_up"):
-			velocity.y = JUMP_FORCE
+			velocity.y = moveData.JUMP_FORCE
 			
 	else:
 		$AnimatedSprite.animation = "jump_slow"
 		if Input.is_action_just_released("ui_up") and velocity.y < -70:
-			velocity.y = RELEASE_FORCE
+			velocity.y = moveData.RELEASE_FORCE
 			
 		if Input.is_action_pressed("ui_down"):
 			velocity.y += 30
 			$AnimatedSprite.animation = "jump"
+	
+func climb_state(input):
+	if not is_on_ladder():
+		state = MOVE
+		
+	if input.length() != 0:
+		animatedSprite.animation = "Run"
+	else:
+		animatedSprite.animation = "idle"
+		
+	velocity = input * 50
+	velocity = move_and_slide(velocity, Vector2.UP)		
+
+func is_on_ladder():
+	if not ladderCheck.is_colliding(): return false
+	var collider = ladderCheck.get_collider()
+	if not collider is Ladder: return false
+	return true
 		
 func apply_gravity():
-	velocity.y += GRAVITY
+	velocity.y += moveData.GRAVITY
 	velocity.y = min(velocity.y, 300)
 
 func apply_friction():
-	velocity.x = move_toward(velocity.x, 0, FRICTION)
+	velocity.x = move_toward(velocity.x, 0, moveData.FRICTION)
 	
 func apply_acceleration(amount):
-	velocity.x = move_toward(velocity.x, MAX_SPEED * amount, ACCELERATION)
+	velocity.x = move_toward(velocity.x, moveData.MAX_SPEED * amount, moveData.ACCELERATION)
 	
