@@ -1,23 +1,48 @@
 extends KinematicBody2D
 
 var velocity = Vector2.ZERO
+export(int) var JUMP_FORCE = -130
+export(int) var RELEASE_FORCE = -70
+export(int) var MAX_SPEED = 50
+export(int) var ACCELERATION = 10
+export(int) var FRICTION = 10
+export(int) var GRAVITY = 4
+export(int) var ADDITIONAL_FALL_GRAVITY = 8
+
 
 
 func _ready():
 	pass
 	
 func _physics_process(delta):
-	velocity.y += 4
-	if Input.is_action_pressed("ui_right"):
-		velocity.x = 50
-	elif Input.is_action_pressed("ui_left"):
-		velocity.x = -50
-	else:
-		velocity.x = 0
-	velocity = move_and_slide(velocity)
+	apply_gravity()
+	var input = Vector2.ZERO
+	input.x = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
 	
-	if Input.is_action_just_pressed("ui_up"):
-		velocity.y = -120
+	if input.x == 0:
+		apply_friction()
+	else:
+		apply_acceleration(input.x)
+
+	velocity = move_and_slide(velocity, Vector2.UP)
+	
+	if is_on_floor():
+
+		if Input.is_action_pressed("ui_up"):
+			velocity.y = JUMP_FORCE
+	else:
+		if Input.is_action_just_released("ui_up") and velocity.y < -70:
+			velocity.y = RELEASE_FORCE
+			
+		if velocity.y > 0:
+			velocity.y += ADDITIONAL_FALL_GRAVITY
 		
-#This is a test comment for commit
-		
+func apply_gravity():
+	velocity.y += GRAVITY
+
+func apply_friction():
+	velocity.x = move_toward(velocity.x, 0, FRICTION)
+	
+func apply_acceleration(amount):
+	velocity.x = move_toward(velocity.x, MAX_SPEED * amount, ACCELERATION)
+	
