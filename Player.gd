@@ -6,11 +6,17 @@ enum { MOVE, CLIMB }
 
 var velocity = Vector2.ZERO
 var state = MOVE
+var double_jump = 1
+var buffered_jump = false
+var coyote_jump = false
 
-export(Resource) var moveData
+export(Resource) var moveData = preload("res://DefaultPlayerMovementData.tres") as PlayerMovementData
 
-onready var animatedSprite = $AnimatedSprite
-onready var ladderCheck = $LadderCheck
+onready var animatedSprite: = $AnimatedSprite
+onready var ladderCheck: = $LadderCheck
+onready var JumpBufferTimer: = $JumpBufferTimer
+onready var CoyoteJumpTimer: = $CoyoteJumpTimer
+		
 	
 func _physics_process(delta):
 	if is_on_ladder():
@@ -41,10 +47,12 @@ func move_state(input):
 			$AnimatedSprite.flip_h = false
 	velocity = move_and_slide(velocity, Vector2.UP)
 	
-	if is_on_floor():
-		if Input.is_action_pressed("ui_up"):
+	if is_on_floor() or coyote_jump:
+		double_jump = moveData.DOUBLE_JUMP_COUNT
+		if Input.is_action_just_pressed("ui_up") or buffered_jump:
 			velocity.y = moveData.JUMP_FORCE
-			
+			buffered_jump = false
+		
 	else:
 		$AnimatedSprite.animation = "jump_slow"
 		if Input.is_action_just_released("ui_up") and velocity.y < -70:
@@ -53,6 +61,20 @@ func move_state(input):
 		if Input.is_action_pressed("ui_down"):
 			velocity.y += 30
 			$AnimatedSprite.animation = "jump"
+			
+		if Input.is_action_just_pressed("ui_up"):
+			buffered_jump = true
+			JumpBufferTimer.start()
+#
+		if Input.is_action_just_pressed("ui_up") and double_jump > 0:
+			velocity.y = moveData.JUMP_FORCE
+			double_jump -= 1
+			
+	var was_on_floor = is_on_floor()
+	var just_left_ground = not is_on_floor() and was_on_floor
+	if just_left_ground and velocity.y >= 0:
+		coyote_jump = true
+		CoyoteJumpTimer.start()
 	
 func climb_state(input):
 	if not is_on_ladder():
@@ -63,7 +85,7 @@ func climb_state(input):
 	else:
 		animatedSprite.animation = "idle"
 		
-	velocity = input * 50
+	velocity = input * moveData.CLIMB_SPEED
 	velocity = move_and_slide(velocity, Vector2.UP)		
 
 func is_on_ladder():
@@ -82,3 +104,9 @@ func apply_friction():
 func apply_acceleration(amount):
 	velocity.x = move_toward(velocity.x, moveData.MAX_SPEED * amount, moveData.ACCELERATION)
 	
+func _on_JumpBufferTimer_timeout():
+	buffered_jump = false # Replace with function body.
+
+
+func _on_CoyoteJumpTimer_timeout():
+	coyote_jump = false
