@@ -35,10 +35,14 @@ func move_state(input):
 		state = CLIMB
 
 	apply_gravity()
-	if input.x == 0:
+	
+	
+	
+	if not horizontal_move(input):
 		apply_friction()
 		$AnimatedSprite.animation = "idle"
-	else:
+	
+	if horizontal_move(input):
 		apply_acceleration(input.x)
 		$AnimatedSprite.animation = "Run"
 		if input.x > 0:
@@ -47,34 +51,45 @@ func move_state(input):
 			$AnimatedSprite.flip_h = false
 	velocity = move_and_slide(velocity, Vector2.UP)
 	
-	if is_on_floor() or coyote_jump:
-		double_jump = moveData.DOUBLE_JUMP_COUNT
-		if Input.is_action_just_pressed("ui_up") or buffered_jump:
-			velocity.y = moveData.JUMP_FORCE
-			buffered_jump = false
-		
+	if is_on_floor():
+		reset_double_jump()
+	
+	if can_jump():
+		input_jump()
 	else:
-		$AnimatedSprite.animation = "jump_slow"
-		if Input.is_action_just_released("ui_up") and velocity.y < -70:
-			velocity.y = moveData.RELEASE_FORCE
-			
-		if Input.is_action_pressed("ui_down"):
-			velocity.y += 30
-			$AnimatedSprite.animation = "jump"
-			
-		if Input.is_action_just_pressed("ui_up"):
-			buffered_jump = true
-			JumpBufferTimer.start()
-#
-		if Input.is_action_just_pressed("ui_up") and double_jump > 0:
-			velocity.y = moveData.JUMP_FORCE
-			double_jump -= 1
+		input_jump_release()
+		fast_fall()
+		buffer_jump()
+		input_double_jump()
 			
 	var was_on_floor = is_on_floor()
 	var just_left_ground = not is_on_floor() and was_on_floor
 	if just_left_ground and velocity.y >= 0:
 		coyote_jump = true
 		CoyoteJumpTimer.start()
+
+func input_jump_release():
+	$AnimatedSprite.animation = "jump_slow"
+	if Input.is_action_just_released("ui_up") and velocity.y < -70:
+			velocity.y = moveData.RELEASE_FORCE
+	
+func input_double_jump():
+	if Input.is_action_just_pressed("ui_up") and double_jump > 0:
+			velocity.y = moveData.JUMP_FORCE
+			double_jump -= 1
+	
+func buffer_jump():
+	if Input.is_action_just_pressed("ui_up"):
+			buffered_jump = true
+			JumpBufferTimer.start()
+	
+func fast_fall():
+	if Input.is_action_pressed("ui_down"):
+			velocity.y += 30
+			$AnimatedSprite.animation = "jump"
+
+func horizontal_move(input):
+	return input.x != 0
 	
 func climb_state(input):
 	if not is_on_ladder():
@@ -87,6 +102,17 @@ func climb_state(input):
 		
 	velocity = input * moveData.CLIMB_SPEED
 	velocity = move_and_slide(velocity, Vector2.UP)		
+	
+func input_jump():
+	if Input.is_action_just_pressed("ui_up") or buffered_jump:
+			velocity.y = moveData.JUMP_FORCE
+			buffered_jump = false
+	
+func reset_double_jump():
+	double_jump = moveData.DOUBLE_JUMP_COUNT
+
+func can_jump():
+	return is_on_floor() or coyote_jump
 
 func is_on_ladder():
 	if not ladderCheck.is_colliding(): return false
