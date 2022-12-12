@@ -16,6 +16,7 @@ onready var animatedSprite: = $AnimatedSprite
 onready var ladderCheck: = $LadderCheck
 onready var JumpBufferTimer: = $JumpBufferTimer
 onready var CoyoteJumpTimer: = $CoyoteJumpTimer
+onready var remoteTransform2D: = $RemoteTransform2D
 		
 	
 func _physics_process(delta):
@@ -107,8 +108,12 @@ func climb_state(input):
 	
 func player_die():
 	SoundPlayer.play_sound(SoundPlayer.HURT)
-	get_tree().reload_current_scene()
+	queue_free()
+	Events.emit_signal("player_died")
 	
+func connect_camera(camera):
+	var camera_path = camera.get_path()
+	remoteTransform2D.remote_path = camera_path
 	
 func input_jump():
 	if Input.is_action_just_pressed("ui_up") or buffered_jump:
