@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://World/Checkpoint.tscn" type="PackedScene" id=1]
+[ext_resource path="res://Levels/Level.tscn" type="PackedScene" id=2]
+[ext_resource path="res://World/TileMap.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Enemies/WalkingEnemy.tscn" type="PackedScene" id=4]
+
+[node name="Level2" instance=ExtResource( 2 )]
+
+[node name="Player" parent="." index="0"]
+position = Vector2( 17, 91 )
+
+[node name="TileMap" parent="." index="3" instance=ExtResource( 3 )]
+tile_data = PoolIntArray( 458759, 2, 65537, 458760, 2, 65538, 458761, 2, 65539, 458764, 2, 65537, 458765, 2, 65538, 458766, 2, 65538, 458767, 2, 65538, 458768, 2, 65538, 458769, 2, 65539, 524288, 2, 65537, 524289, 2, 65538, 524290, 2, 65538, 524291, 2, 65538, 524292, 2, 65538, 524293, 2, 65538, 524294, 2, 65538, 524295, 2, 65541, 524296, 2, 393218, 524297, 2, 393219, 524300, 2, 393217, 524301, 2, 393218, 524302, 2, 393218, 524303, 2, 393218, 524304, 2, 393218, 524305, 2, 393219, 589824, 2, 458753, 589825, 2, 458754, 589826, 2, 458754, 589827, 2, 458754, 589828, 2, 458754, 589829, 2, 458754, 589830, 2, 458754, 589831, 2, 458754, 589832, 2, 458754, 589833, 2, 458755, 589836, 2, 458753, 589837, 2, 458754, 589838, 2, 458754, 589839, 2, 458754, 589840, 2, 458754, 589841, 2, 458755 )
+
+[node name="WalkingEnemy" parent="." index="4" instance=ExtResource( 4 )]
+position = Vector2( 137, 126 )
+
+[node name="Checkpoint" parent="." index="5" instance=ExtResource( 1 )]
+position = Vector2( 227, 128 )

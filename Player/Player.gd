@@ -10,7 +10,7 @@ var double_jump = 1
 var buffered_jump = false
 var coyote_jump = false
 
-export(Resource) var moveData = preload("res://DefaultPlayerMovementData.tres") as PlayerMovementData
+export(Resource) var moveData = preload("res://Player/DefaultPlayerMovementData.tres") as PlayerMovementData
 
 onready var animatedSprite: = $AnimatedSprite
 onready var ladderCheck: = $LadderCheck
@@ -32,7 +32,7 @@ func _physics_process(delta):
 
 		
 func move_state(input):
-	if is_on_ladder() and Input.is_action_pressed("ui_up"):
+	if is_on_ladder() and Input.is_action_just_pressed("ui_up"):
 		state = CLIMB
 
 	apply_gravity()

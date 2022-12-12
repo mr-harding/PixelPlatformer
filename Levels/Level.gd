@@ -1,6 +1,6 @@
 extends Node2D
 
-const PlayerScene = preload("res://Player.tscn") #instancing a scene
+const PlayerScene = preload("res://Player/Player.tscn") #instancing a scene
 
 var player_spawn_location = Vector2.ZERO
 
