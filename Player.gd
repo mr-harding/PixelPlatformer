@@ -75,6 +75,7 @@ func input_jump_release():
 	
 func input_double_jump():
 	if Input.is_action_just_pressed("ui_up") and double_jump > 0:
+			SoundPlayer.play_sound(SoundPlayer.JUMP)
 			velocity.y = moveData.JUMP_FORCE
 			double_jump -= 1
 	
@@ -85,6 +86,7 @@ func buffer_jump():
 	
 func fast_fall():
 	if Input.is_action_pressed("ui_down"):
+			SoundPlayer.play_sound(SoundPlayer.SLAM)
 			velocity.y += 30
 			$AnimatedSprite.animation = "jump"
 
@@ -103,8 +105,14 @@ func climb_state(input):
 	velocity = input * moveData.CLIMB_SPEED
 	velocity = move_and_slide(velocity, Vector2.UP)		
 	
+func player_die():
+	SoundPlayer.play_sound(SoundPlayer.HURT)
+	get_tree().reload_current_scene()
+	
+	
 func input_jump():
 	if Input.is_action_just_pressed("ui_up") or buffered_jump:
+			SoundPlayer.play_sound(SoundPlayer.JUMP)
 			velocity.y = moveData.JUMP_FORCE
 			buffered_jump = false
 	
